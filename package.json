@@ -1,0 +1,31 @@
+{
+  "name": "rps",
+  "version": "1.0.0",
+  "private": true,
+  "description": "rps",
+  "keywords": [
+    "gatsby"
+  ],
+  "scripts": {
+    "develop": "gatsby develop",
+    "start": "gatsby develop",
+    "build": "gatsby build",
+    "serve": "gatsby serve",
+    "clean": "gatsby clean",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-three/drei": "^9.65.5",
+    "gatsby": "^5.9.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-three-fiber": "^6.0.13",
+    "three": "^0.151.3"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.13",
+    "@types/react": "^18.0.38",
+    "@types/react-dom": "^18.0.11",
+    "typescript": "^5.0.4"
+  }
+}
