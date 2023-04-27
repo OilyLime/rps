@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "rps",
-  "engines" : { 
-    "npm" : ">=9.0.0"
+  "engines": {
+    "npm": ">=9.0.0",
+    "node": ">=v18.16.0"
   },
   "keywords": [
     "gatsby"
@@ -20,10 +21,14 @@
   "dependencies": {
     "gatsby": "^5.9.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.10.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^3.14.1",
+    "@types/node": "^18.6.2",
     "@types/react": "^18.0.38",
+    "@types/react-dom": "^18.0.6",
     "typescript": "^5.0.4"
   }
 }
