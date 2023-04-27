@@ -1,4 +1,3 @@
-import { URL } from "url";
 import { Env } from "./types";
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {

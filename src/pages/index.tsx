@@ -1,16 +1,14 @@
-import React, {useState} from "react"
+import React, { useState } from "react"
 import type { HeadFC, PageProps } from "gatsby"
-import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import Game from "../components/Game"
 
-const CreateGame: React.FC = () => {
-  const navigate = useNavigate();
+const App: React.FC<PageProps> = () => {
   const [loading, setLoading] = useState(false);
 
   const handleCreateGame = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/new', { method: 'GET'});
+      const response = await fetch('/new', { method: 'POST' });
       const data = await response.json();
       const gameId = data.id;
       navigate(`/${gameId}`);
@@ -28,18 +26,6 @@ const CreateGame: React.FC = () => {
       </button>
     </div>
   );
-};
-
-const App: React.FC<PageProps> = () => {
-  return (
-    <Router>
-
-    <Routes>
-      <Route path="/" element={<CreateGame />} />
-      <Route path="/:id" element={<Game />} />
-    </Routes>
-  </Router>
-  )
 }
 
 export default App

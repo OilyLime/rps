@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Game.css';
+import { useParams } from 'react-router';
 
 const getOpponentChoice = () => {
   const choices = ['rock', 'paper', 'scissors'];
@@ -7,6 +8,7 @@ const getOpponentChoice = () => {
 };
 
 const Game: React.FC = () => {
+  const { id: gameId } = useParams();
   const [choice, setChoice] = useState<string | null>(null);
   const [opponentChoice, setOpponentChoice] = useState<string | null>(null);
 
