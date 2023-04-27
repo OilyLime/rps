@@ -1,6 +1,6 @@
 import React, { useState } from "react"
+import { navigate } from "gatsby";
 import type { HeadFC, PageProps } from "gatsby"
-import Game from "../components/Game"
 
 const App: React.FC<PageProps> = () => {
   const [loading, setLoading] = useState(false);

@@ -1,13 +1,10 @@
 name = "rps-game-state"
-main = "dist/index.mjs"
+main = "src/index.ts"
 compatibility_date = "2023-04-26"
 
 # alarms are used to send a broadcast health check message
 # useful to detect dead connections
 compatibility_flags = ["durable_object_alarms"]
-
-[build]
-command = "npm install && npm run build"
 
 [durable_objects]
 bindings = [

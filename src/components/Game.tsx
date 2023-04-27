@@ -13,9 +13,6 @@ const Game: React.FC = () => {
   const [opponentChoice, setOpponentChoice] = useState<string | null>(null);
 
   const getImageComponent = (choice: string | null) => {
-    // if (choice === 'rock') return <StaticImage src="../images/rock.png" alt="Rock" />;
-    // if (choice === 'paper') return <StaticImage src="../images/paper.png" alt="Paper" />;
-    // if (choice === 'scissors') return <StaticImage src="../images/scissors.png" alt="Scissors" />;
     if (choice === 'rock') return <img src="/images/rock.png" alt="Rock" />;
     if (choice === 'paper') return <img src="/images/paper.png" alt="Paper" />;
     if (choice === 'scissors') return <img src="/images/scissors.png" alt="Scissors" />;

@@ -3,18 +3,15 @@
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {
-		"build": "rollup -c"
+		"start": "wrangler dev src/index.ts --local",
+		"deploy": "wrangler publish src/index.ts",
+		"start-stackblitz": "WRANGLER_SEND_METRICS=false wrangler dev src/index.ts --local"
 	},
 	"dependencies": {
 		"uuid": "^9.0.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^3.0.0",
-		"@rollup/plugin-commonjs": "^24.0.0",
-		"@rollup/plugin-node-resolve": "^15.0.1",
-		"@rollup/plugin-terser": "^0.3.0",
-		"@rollup/plugin-typescript": "^11.0.0",
-		"@types/jest": "^29.2.5",
 		"@types/uuid": "^9.0.1",
 		"rollup": "^3.10.0",
 		"tslib": "^2.4.1",
