@@ -14,7 +14,8 @@ const Game: React.FC = () => {
   useEffect(() => {
     if (!gameId) return;
 
-    const ws = new WebSocket(`ws://rps.oilylime.com/${gameId}`);
+    const wsUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + `/${gameId}`;
+    const ws = new WebSocket(wsUrl);
     setSocket(ws);
 
     ws.onmessage = (message) => {
