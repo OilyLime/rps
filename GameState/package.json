@@ -4,7 +4,7 @@
 	"private": true,
 	"scripts": {
 		"start": "wrangler dev src/index.ts --local",
-		"deploy": "wrangler publish src/index.ts",
+		"deploy": "wrangler publish src/index.ts"
 	},
 	"dependencies": {
 		"uuid": "^9.0.0"

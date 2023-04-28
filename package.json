@@ -14,7 +14,7 @@
     ]
   },
   "scripts": {
-    "start": "npx wrangler pages dev  --proxy 3000 --experimental-local --do GAME_STATE=GameState -- react-scripts start",
+    "start": "npx wrangler pages dev --do GAME_STATE=GameState -- react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
