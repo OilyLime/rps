@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './Game.css';
 import { useParams } from 'react-router';
 
@@ -8,7 +8,48 @@ const getOpponentChoice = () => {
 };
 
 const Game: React.FC = () => {
-  const { id: gameId } = useParams();
+  const { id: gameId } = useParams<{ id: string }>();
+  const [socket, setSocket] = useState<WebSocket | null>(null);
+
+  useEffect(() => {
+    if (!gameId) return;
+
+    const ws = new WebSocket(`ws://localhost:8080/${gameId}`);
+    setSocket(ws);
+
+    ws.onmessage = (message) => {
+      const data = JSON.parse(message.data);
+      // Update the game state based on the received data
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket closed');
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [gameId]);
+
+  const sendUpdate = (update: any) => {
+    if (!socket) return;
+    socket.send(JSON.stringify(update));
+  };
+
+  const [gameState, setGameState] = useState<any>({});
+
+  // Inside ws.onmessage:
+  if (socket)
+    socket.onmessage = (message) => {
+      const data = JSON.parse(message.data);
+      // Update the game state based on the received data
+      setGameState((prevState: any) => ({ ...prevState, ...data }));
+    };
+
   const [choice, setChoice] = useState<string | null>(null);
   const [opponentChoice, setOpponentChoice] = useState<string | null>(null);
 
