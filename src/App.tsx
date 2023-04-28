@@ -10,8 +10,7 @@ const CreateGame: React.FC = () => {
     setLoading(true);
     try {
       const response = await fetch('/new', { method: 'POST' });
-      const data = await response.json();
-      const gameId = data.id;
+      const gameId = await response.text();
       navigate(`/play/${gameId}`);
     } catch (error) {
       setLoading(false);
