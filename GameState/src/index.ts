@@ -50,6 +50,11 @@ export class GameState {
 		this.players = new Map();
 		this.rounds = new Array();
 		this.currentRound = 0;
+		this.rounds.push({
+			number: 0,
+			time: Date.now(),
+			choices: new Map<string, string>()
+		})
 		this.storage = state.storage;
 		this.dolocation = '';
 
@@ -75,10 +80,10 @@ export class GameState {
 			const [client, server] = Object.values(pair);
 
 			// We're going to take pair[1] as our end, and return pair[0] to the client.
-			const player = await this.handleWebSocketSession(server, cf);
+			const player = await this.handleWebSocketSession(server, cf as any);
 
 			// Now we return the other end of the pair to the client.
-			return new Response(JSON.stringify({ id: player?.id }), { status: 101, webSocket: client });
+			return new Response(null, { status: 101, webSocket: client });
 		}
 
 		return new Response(this.id);
@@ -96,6 +101,11 @@ export class GameState {
 		}
 		this.rounds[this.currentRound] = round
 		this.currentRound++
+		this.rounds.push({
+			number: this.currentRound,
+			time: Date.now(),
+			choices: new Map<string, string>()
+		})
 		return round
 	}
 
