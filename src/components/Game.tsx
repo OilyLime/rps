@@ -12,10 +12,8 @@ const GameContainer = styled.div`
 `
 
 const ButtonGroup = styled.div`
-
   display: flex;
   gap: 1rem;
-
 `
 
 const Button = styled.button`

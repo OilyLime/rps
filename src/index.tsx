@@ -2,15 +2,24 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import styled from 'styled-components';
+import Container from './components/Container';
 
 const Body = styled.body`
 margin: 0;
-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-  'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-  sans-serif;
--webkit-font-smoothing: antialiased;
--moz-osx-font-smoothing: grayscale;
+font-family: GillSans, Calibri, Trebuchet, sans-serif;
 `
+
+const LimeLogo = styled.a`
+  display: block;
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  background-image: url('lime-logo.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+`;
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -18,7 +27,10 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <Body>
-      <App />
+      <Container>
+        <App />
+      </Container>
+      <LimeLogo href='https://oilylime.com' target="_blank" rel="noopener noreferrer" />
     </Body>
   </React.StrictMode>
 );

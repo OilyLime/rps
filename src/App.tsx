@@ -1,42 +1,13 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Game from './components/Game';
-
-const CreateGame: React.FC = () => {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-
-  const handleCreateGame = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('game/new', { method: 'GET' });
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message)
-      }
-      const gameId = await response.text();
-      navigate(`/play/${gameId}`);
-    } catch (error) {
-      setLoading(false);
-      console.error('Error creating game:', error);
-    }
-  };
-
-  return (
-    <div>
-      <h1>Rock Paper Scissors</h1>
-      <button onClick={handleCreateGame} disabled={loading}>
-        {loading ? 'Creating game...' : 'Create new game'}
-      </button>
-    </div>
-  );
-};
+import Launch from './components/Launch';
 
 const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<CreateGame />} />
+        <Route path="/" element={<Launch />} />
         <Route path="/play/:id" element={<Game />} />
       </Routes>
     </Router>
