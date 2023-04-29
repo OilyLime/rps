@@ -1,7 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import './Game.css';
 import { useParams } from 'react-router';
-import { PlayerChoice } from '../rps-game-state/src/types'
+import { PlayerChoice } from '../../rps-game-state/src/types'
+import styled from "styled-components";
+
+const GameContainer = styled.div`
+    display: flex;
+    justify-content:space-evenly;
+    align-items: center;
+    color: white;
+    background-color: #131A22;
+`
+
+const ButtonGroup = styled.div`
+
+  display: flex;
+  gap: 1rem;
+
+`
+
+const Button = styled.button`
+padding: 0.5rem 1rem;
+font-size: 1rem;
+cursor: pointer;
+`
+
+type IncomingEvent = {
+  type: string;
+  time: number;
+  data: Record<string, any>;
+}
 
 const Game: React.FC = () => {
   const { id: gameId } = useParams<{ id: string }>();
@@ -15,7 +42,7 @@ const Game: React.FC = () => {
   useEffect(() => {
     if (!gameId) return;
 
-    const wsUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + `/${gameId}`;
+    const wsUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + `/game/${gameId}`;
     const ws = new WebSocket(wsUrl);
     setSocket(ws);
 
@@ -24,7 +51,7 @@ const Game: React.FC = () => {
     };
 
     ws.onmessage = (message) => {
-      const event = JSON.parse(message.data) as any;
+      const event = JSON.parse(message.data) as IncomingEvent;
       console.log('event', event)
       switch (event.type) {
         case 'whoami':
@@ -54,10 +81,6 @@ const Game: React.FC = () => {
     };
   }, [gameId]);
 
-  socket?.addEventListener('open', () => {
-    socket.send(JSON.stringify({ type: 'whoami', time: Date.now() }));
-  });
-
 
   const handleChoice = (choice: string) => {
     if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'choice', time: Date.now(), data: { choice } } as PlayerChoice))
@@ -65,7 +88,7 @@ const Game: React.FC = () => {
   }
 
   return (
-    <div className="game">
+    <GameContainer>
       <h1>Game ID: {gameId}</h1>
       <h1>Player ID: {playerId}</h1>
       <h2>Rounds: {round + 1}</h2>
@@ -80,12 +103,12 @@ const Game: React.FC = () => {
         <h3>Your Choice:</h3>
         {choice}
       </div>
-      <div className="buttons">
-        <button onClick={() => { handleChoice('rock') }}>Rock</button>
-        <button onClick={() => { handleChoice('paper') }}>Paper</button>
-        <button onClick={() => { handleChoice('scissors') }}>Scissors</button>
-      </div>
-    </div>
+      <ButtonGroup>
+        <Button onClick={() => { handleChoice('rock') }}>Rock</Button>
+        <Button onClick={() => { handleChoice('paper') }}>Paper</Button>
+        <Button onClick={() => { handleChoice('scissors') }}>Scissors</Button>
+      </ButtonGroup>
+    </GameContainer>
   );
 };
 

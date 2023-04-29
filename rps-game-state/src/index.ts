@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Choice, Player, BaseRound, Round, WhoAmI, IncomingEvent } from "./types";
+import { Choice, Player, Round, IncomingEvent, PlayerChoice } from "./types";
 
 // every 10 seconds
 const healthCheckInterval = 10e3;
@@ -7,14 +7,14 @@ const healthCheckInterval = 10e3;
 export class GameState {
 	id: string;
 	players: Map<string, Player>;
-	rounds: Array<BaseRound | Round>;
+	rounds: Array<Round>;
 	storage: DurableObjectStorage;
 	dolocation: string;
 
 	constructor(state: DurableObjectState) {
 		this.id = state.id.toString()
 		this.players = new Map();
-		this.rounds = new Array();
+		this.rounds = [];
 		this.storage = state.storage;
 		this.storage.put('currentRound', {
 			number: 0,
@@ -58,7 +58,9 @@ export class GameState {
 	async resolveRound(): Promise<Round> {
 		const [a, b] = this.players;
 		const round = await this.storage.get('currentRound') as Round
-		if ((round.choices.get(a[0]) === Choice.Rock && round.choices.get(b[0]) === Choice.Scissors) ||
+		if (round.choices.get(a[0]) === round.choices.get(b[0])) {
+			round.winner = null;
+		} else if ((round.choices.get(a[0]) === Choice.Rock && round.choices.get(b[0]) === Choice.Scissors) ||
 			(round.choices.get(a[0]) === Choice.Paper && round.choices.get(b[0]) === Choice.Rock) ||
 			(round.choices.get(a[0]) === Choice.Scissors && round.choices.get(b[0]) === Choice.Paper)) {
 			round.winner = a[0]
@@ -75,6 +77,26 @@ export class GameState {
 		})
 		console.log('resolveRound', round)
 		return round
+	}
+
+	async handlePlayerChoice(playerId: string, choice: PlayerChoice): Promise<void> {
+		// TODO(maybe): Lock state?
+		// TODO(maybe): Prevent player some setting choice twice?
+		const currentRound = await this.storage.get('currentRound') as Round
+		if (currentRound.choices.has(playerId)) return // player can only enter one choice per round
+		currentRound.choices.set(playerId, choice.data.choice)
+		await this.storage.put('currentRound', currentRound)
+		if (currentRound.choices.size == 2) {
+			const resolved = await this.resolveRound()
+			this.broadcast(JSON.stringify({
+				type: 'result', time: Date.now(), data: {
+					number: resolved.number,
+					time: resolved.time,
+					choices: Array.from(resolved.choices.entries()),
+					winner: resolved.winner
+				}
+			}))
+		}
 	}
 
 	async handleWebSocketSession(webSocket: WebSocket, metadata: IncomingRequestCfProperties): Promise<void> {
@@ -95,25 +117,10 @@ export class GameState {
 				const incomingEvent = JSON.parse(msg.data.toString()) as IncomingEvent;
 				switch (incomingEvent.type) {
 					case 'whoami':
-						webSocket.send(JSON.stringify({ type: 'whoami', time: Date.now(), data: {playerId} }))
+						webSocket.send(JSON.stringify({ type: 'whoami', time: Date.now(), data: { playerId } }))
 						break;
 					case 'choice':
-						// TODO move to separate function
-						// TODO(maybe): Lock state?
-						// TODO(maybe): Prevent player some setting choice twice?
-						console.log('choice', playerId, incomingEvent)
-						const currentRound = await this.storage.get('currentRound') as Round
-						currentRound.choices.set(playerId, incomingEvent.data.choice)
-						await this.storage.put('currentRound', currentRound)
-						if (currentRound.choices.size == 2) {
-							const resolved = await this.resolveRound()
-							this.broadcast(JSON.stringify({type: 'result', time: Date.now(), data: {
-								number: resolved.number, 
-								time: resolved.time,
-								choices: Array.from(resolved.choices.entries()),
-								winner: resolved.winner
-							}}))
-						}
+
 					default:
 						break;
 				}

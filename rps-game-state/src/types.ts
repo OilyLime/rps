@@ -10,14 +10,11 @@ export interface Player {
 	wins: number;
 }
 
-export interface BaseRound {
+export interface Round {
 	number: number;
 	time: number;
 	choices: Map<string, string>
-}
-
-export interface Round extends BaseRound {
-	winner: string;
+	winner?: string;
 }
 
 export interface BaseEvent<T extends string, D> {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
-import Game from './Game';
+import Game from './components/Game';
 
 const CreateGame: React.FC = () => {
   const navigate = useNavigate();
@@ -9,7 +9,7 @@ const CreateGame: React.FC = () => {
   const handleCreateGame = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/new', { method: 'GET' });
+      const response = await fetch('game/new', { method: 'GET' });
       if (!response.ok) {
         const message = await response.text();
         throw new Error(message)
