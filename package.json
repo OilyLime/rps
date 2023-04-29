@@ -14,12 +14,13 @@
     ]
   },
   "scripts": {
-    "start": "npx wrangler pages dev --do GAME_STATE=GameState -- react-scripts start",
+    "start": "npx wrangler pages dev --do GAME_STATE=GameState@rps-game-state --compatibility-date=2023-04-29 -- react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "miniflare": "^2.13.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.10.0",

@@ -9,7 +9,11 @@ const CreateGame: React.FC = () => {
   const handleCreateGame = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/new', { method: 'POST' });
+      const response = await fetch('/new', { method: 'GET' });
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message)
+      }
       const gameId = await response.text();
       navigate(`/play/${gameId}`);
     } catch (error) {

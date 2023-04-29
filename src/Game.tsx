@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import './Game.css';
 import { useParams } from 'react-router';
-
-const getOpponentChoice = () => {
-  const choices = ['rock', 'paper', 'scissors'];
-  return choices[Math.floor(Math.random() * choices.length)];
-};
+import { PlayerChoice } from '../rps-game-state/src/types'
 
 const Game: React.FC = () => {
   const { id: gameId } = useParams<{ id: string }>();
   const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [playerId, setPlayerId] = useState<string | null>(null);
+  const [round, setRounds] = useState<number>(0);
+  const [wins, setWins] = useState<number>(0);
+  const [choice, setChoice] = useState<string | null>(null);
+  const [opponentChoice, setOpponentChoice] = useState<string | null>(null);
 
   useEffect(() => {
     if (!gameId) return;
@@ -18,9 +19,26 @@ const Game: React.FC = () => {
     const ws = new WebSocket(wsUrl);
     setSocket(ws);
 
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ type: 'whoami', time: Date.now() }));
+    };
+
     ws.onmessage = (message) => {
-      const data = JSON.parse(message.data);
-      // Update the game state based on the received data
+      const event = JSON.parse(message.data) as any;
+      console.log('event', event)
+      switch (event.type) {
+        case 'whoami':
+          setPlayerId(() => event.data.playerId);
+          break;
+        case 'result':
+          setRounds(event.data.number)
+          const choices = new Map<string, string>(event.data.choices);
+          choices.forEach((choice, player) => {
+            if (player !== playerId) setOpponentChoice(choice);
+          });
+          if (event.data.winner === playerId) setWins((prevWins) => prevWins + 1);
+          break;
+      }
     };
 
     ws.onerror = (error) => {
@@ -36,42 +54,36 @@ const Game: React.FC = () => {
     };
   }, [gameId]);
 
-  const sendUpdate = (update: any) => {
-    if (!socket) return;
-    socket.send(JSON.stringify(update));
-  };
+  socket?.addEventListener('open', () => {
+    socket.send(JSON.stringify({ type: 'whoami', time: Date.now() }));
+  });
 
-  const [gameState, setGameState] = useState<any>({});
 
-  // Inside ws.onmessage:
-  if (socket)
-    socket.onmessage = (message) => {
-      const data = JSON.parse(message.data);
-      // Update the game state based on the received data
-      setGameState((prevState: any) => ({ ...prevState, ...data }));
-    };
-
-  const [choice, setChoice] = useState<string | null>(null);
-  const [opponentChoice, setOpponentChoice] = useState<string | null>(null);
-
-  const getImageComponent = (choice: string | null) => {
-    if (choice === 'rock') return <img src="/images/rock.png" alt="Rock" />;
-    if (choice === 'paper') return <img src="/images/paper.png" alt="Paper" />;
-    if (choice === 'scissors') return <img src="/images/scissors.png" alt="Scissors" />;
-    return null;
-  };
-
+  const handleChoice = (choice: string) => {
+    if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'choice', time: Date.now(), data: { choice } } as PlayerChoice))
+    setChoice(choice)
+  }
 
   return (
     <div className="game">
+      <h1>Game ID: {gameId}</h1>
+      <h1>Player ID: {playerId}</h1>
+      <h2>Rounds: {round + 1}</h2>
+      <h2>Wins: {wins}</h2>
       <h2>Opponent</h2>
-      <div className="opponent-choice">{opponentChoice && getImageComponent(opponentChoice)}</div>
-      <div className="animation-container">{choice && getImageComponent(choice)}</div>
+      <div className="opponent-choice">
+        <h3>Opponent's Choice:</h3>
+        {opponentChoice}
+      </div>
       <h2>You</h2>
+      <div className="animation-container">
+        <h3>Your Choice:</h3>
+        {choice}
+      </div>
       <div className="buttons">
-        <button onClick={() => { setChoice('rock'); setOpponentChoice(getOpponentChoice()); }}>Rock</button>
-        <button onClick={() => { setChoice('paper'); setOpponentChoice(getOpponentChoice()); }}>Paper</button>
-        <button onClick={() => { setChoice('scissors'); setOpponentChoice(getOpponentChoice()); }}>Scissors</button>
+        <button onClick={() => { handleChoice('rock') }}>Rock</button>
+        <button onClick={() => { handleChoice('paper') }}>Paper</button>
+        <button onClick={() => { handleChoice('scissors') }}>Scissors</button>
       </div>
     </div>
   );
