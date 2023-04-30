@@ -12,7 +12,7 @@ const LimeLogo = styled.a`
   right: 10px;
   width: 40px;
   height: 40px;
-  background-image: url('lime-logo.png');
+  background-image: url('/lime-logo.png');
   background-size: contain;
   background-repeat: no-repeat;
 `;

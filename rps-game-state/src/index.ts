@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { Choice, Player, Round, IncomingEvent, PlayerChoice, State } from './types';
+import { Choice, Player, Round, IncomingEvent } from './types';
 import { toTitleCase } from './util';
 
 // every 10 seconds
