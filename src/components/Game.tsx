@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useParams } from "react-router";
-import styled from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 import useWebSocket from "../hooks/useWebSocket";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -48,10 +48,27 @@ const ChoicesContainer = styled.div`
   width: 100%;
 `;
 
-const ChoiceImage = styled.img<{ disabled: boolean }>`
+const jiggle = keyframes`
+  0% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+  100% {
+    transform: rotate(-5deg);
+  }
+`;
+
+const ChoiceImage = styled.img<{ disabled: boolean, jiggle: boolean }>`
   max-width: 100px;
-  cursor: pointer;
-  filter: ${(props) => (props.disabled ? "grayscale(100%)" : "none")};
+  height: auto;
+  object-fit: contain;
+  ${(props) =>
+    props.jiggle &&
+    css`
+      animation: ${jiggle} 0.5s infinite;
+    `}
   pointer-events: ${(props) => (props.disabled ? "none" : "auto")};
 `;
 
@@ -71,7 +88,9 @@ const CopyButton = styled.button`
 const RoundHistory = styled.div`
   display: flex;
   flex-direction: column;
-  width: 200px;
+  max-height: 80%;
+  overflow: auto;
+  width: 20%;
   background-color: #f5f0ea;
   padding: 20px;
   border-radius: 5px;
@@ -182,6 +201,7 @@ const Game: React.FC = () => {
               id="rock"
               onClick={handleChoice(Choice.Rock)}
               disabled={!canIChoose}
+              jiggle={canIChoose}
             />
             <ChoiceImage
               src="/paper.png"
@@ -189,6 +209,7 @@ const Game: React.FC = () => {
               id="paper"
               onClick={handleChoice(Choice.Paper)}
               disabled={!canIChoose}
+              jiggle={canIChoose}
             />
             <ChoiceImage
               src="/scissors.png"
@@ -196,6 +217,7 @@ const Game: React.FC = () => {
               id="scissors"
               onClick={handleChoice(Choice.Scissors)}
               disabled={!canIChoose}
+              jiggle={canIChoose}
             />
           </ChoicesContainer>
         </MainBox>
