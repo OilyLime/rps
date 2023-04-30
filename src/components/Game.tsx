@@ -136,6 +136,7 @@ const Game: React.FC = () => {
       <ConnectedPlayers playerName={playerName} players={connectedPlayers} />
       <GameWrapper>
         <RoundHistory>
+        <span>Round History</span>
           {rounds.map((round, index) => (
             <RoundResult key={index}>
               <img
@@ -157,9 +158,11 @@ const Game: React.FC = () => {
           ))}
         </RoundHistory>
         <MainBox>
+          <span>
           {roundState === "start" && "Let's Start"}
           {roundState === "waiting" && "Waiting for Opponent"}
           {roundState === "complete" && "Round Complete"}
+          </span>
           <ChoicesContainer>
             <ChoiceImage
               src="/rock.png"
