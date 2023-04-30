@@ -2,12 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import styled from 'styled-components';
-import Container from './components/Container';
-
-const Body = styled.body`
-margin: 0;
-font-family: GillSans, Calibri, Trebuchet, sans-serif;
-`
+import { Provider } from "react-redux";
+import store from "./store";
 
 const LimeLogo = styled.a`
   display: block;
@@ -26,11 +22,9 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <Body>
-      <Container>
-        <App />
-      </Container>
+    <Provider store={store}>
+      <App />
       <LimeLogo href='https://oilylime.com' target="_blank" rel="noopener noreferrer" />
-    </Body>
+    </Provider>
   </React.StrictMode>
 );

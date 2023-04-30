@@ -7,7 +7,7 @@
 		"deploy": "wrangler publish src/index.ts"
 	},
 	"dependencies": {
-		"uuid": "^9.0.0"
+		"@faker-js/faker": "^7.6.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20230404.0",

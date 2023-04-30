@@ -1,5 +1,6 @@
-import { v4 as uuidv4 } from 'uuid';
+import { faker } from '@faker-js/faker'
 import { Choice, Player, Round, IncomingEvent, PlayerChoice } from "./types";
+import { toTitleCase } from './util';
 
 // every 10 seconds
 const healthCheckInterval = 10e3;
@@ -46,7 +47,6 @@ export class GameState {
 
 			// We're going to take pair[1] as our end, and return pair[0] to the client.
 			await this.handleWebSocketSession(server, cf as any);
-			console.log('websocket established')
 			// Now we return the other end of the pair to the client.
 			return new Response(null, { status: 101, webSocket: client });
 		}
@@ -79,12 +79,12 @@ export class GameState {
 		return round
 	}
 
-	async handlePlayerChoice(playerId: string, choice: PlayerChoice): Promise<void> {
+	async handlePlayerChoice(playerName: string, choice: Choice): Promise<void> {
 		// TODO(maybe): Lock state?
 		// TODO(maybe): Prevent player some setting choice twice?
 		const currentRound = await this.storage.get('currentRound') as Round
-		if (currentRound.choices.has(playerId)) return // player can only enter one choice per round
-		currentRound.choices.set(playerId, choice.data.choice)
+		if (currentRound.choices.has(playerName)) return // player can only enter one choice per round
+		currentRound.choices.set(playerName, choice)
 		await this.storage.put('currentRound', currentRound)
 		if (currentRound.choices.size == 2) {
 			const resolved = await this.resolveRound()
@@ -105,9 +105,9 @@ export class GameState {
 		webSocket.accept();
 
 		// Create our session and add it to the users map.
-		const playerId = uuidv4();
-		this.players.set(playerId, {
-			id: playerId,
+		const playerName = toTitleCase(`${faker.color.human()} ${faker.animal.type()}`);
+		this.players.set(playerName, {
+			name: playerName,
 			websocket: webSocket,
 			wins: 0,
 		});
@@ -115,12 +115,14 @@ export class GameState {
 		webSocket.addEventListener('message', async msg => {
 			try {
 				const incomingEvent = JSON.parse(msg.data.toString()) as IncomingEvent;
+				console.log(playerName, incomingEvent)
 				switch (incomingEvent.type) {
 					case 'whoami':
-						webSocket.send(JSON.stringify({ type: 'whoami', time: Date.now(), data: { playerId } }))
+						webSocket.send(JSON.stringify({ type: 'whoami', time: Date.now(), data: { playerName } }))
 						break;
 					case 'choice':
-
+						this.handlePlayerChoice(playerName, incomingEvent.data.choice)
+						break;
 					default:
 						break;
 				}
@@ -138,11 +140,13 @@ export class GameState {
 		});
 
 		let closeOrErrorHandler = () => {
-			console.log('player websocket closed', playerId);
-			this.players.delete(playerId);
+			console.log('player websocket closed', playerName);
+			this.players.delete(playerName);
 		};
 		webSocket.addEventListener('close', closeOrErrorHandler);
 		webSocket.addEventListener('error', closeOrErrorHandler);
+		this.broadcast(JSON.stringify(Array.from(this.players.keys())))
+		console.log('websocket established', playerName)
 	}
 
 	// broadcast() broadcasts a message to all clients.
@@ -150,6 +154,7 @@ export class GameState {
 		// Iterate over all the sessions sending them messages.
 		this.players.forEach((player) => {
 			try {
+				console.log('broadcasting to player', player.name, 'message', message)
 				player.websocket.send(message);
 			} catch (err) {
 				console.log(`broadcast error: ${player}`);

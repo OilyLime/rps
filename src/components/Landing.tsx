@@ -3,6 +3,24 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
+const Block = styled.div`
+display: flex;
+justify-content: center;
+align-items: center;
+height: 100vh;
+width: 100vw;
+overflow: wrap;
+`
+
+const Box = styled.div`
+width: 60%;
+height: 60%;
+background-color: white;
+border-radius: 5px;
+box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
+background-color: #F5F0EA
+`
+
 const Container = styled.div`
 display: flex;
 flex-direction: row;
@@ -22,13 +40,14 @@ padding: 0 10px;
 `
 
 const Image = styled.img`
-max-width: 200px;
+max-width: 300px;
 width: 100%;
 height: auto;
 `
 
 const NewGameButton = styled.button`
-background-color: #5D3F31;
+width:20%;
+background-color: #2C3E50;
 color: #F5F0EA;
 border: none;
 border-radius: 25px;
@@ -37,13 +56,13 @@ font-size: 16px;
 cursor: pointer;
 margin-top: 20px;
 &:hover {
-  background-color: #2C3E50;
+  background-color: #5D3F31;
 }
 border-radius: 5px;
 box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
 `
 
-const Launch: React.FC = () => {
+const Landing: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -64,6 +83,8 @@ const Launch: React.FC = () => {
   };
 
   return (
+    <Block>
+    <Box>
     <Container>
         <ImagesContainer>
             <Image src="/rock.png" />
@@ -73,8 +94,11 @@ const Launch: React.FC = () => {
       <NewGameButton onClick={handleCreateGame} disabled={loading}>
         {loading ? 'Loading...' : 'Play'}
       </NewGameButton>
-    </Container>
+    </Container>  
+      </Box>  
+    </Block>
+    
   );
 };
 
-export default Launch;
+export default Landing;

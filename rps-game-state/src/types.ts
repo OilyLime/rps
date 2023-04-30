@@ -6,7 +6,7 @@ export enum Choice {
 
 export interface Player {
 	websocket: WebSocket;
-	id: string;
+	name: string;
 	wins: number;
 }
 
@@ -23,11 +23,13 @@ export interface BaseEvent<T extends string, D> {
 	data: D;
 }
 
-export type WhoAmI = BaseEvent<'whoami', { playerId: string }>
+export type WhoAmI = BaseEvent<'whoami', { playerName: string }>
 
 export type PlayerChoice = BaseEvent<'choice', { choice: Choice }>
 
 export type Healthcheck = BaseEvent<'healthcheck', null>
+
+export type Connected = BaseEvent<'connected', { playerName: string}>
 
 export type Result = BaseEvent<'result', { round: { number: number; time: number; choices: Array<[string, string]>; winner: string } }>
 
