@@ -1,68 +1,43 @@
-import { useCallback, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { setPlayerName, setPlayers, setChoice, setRounds } from "../store/slices/gameSlice";
+import {
+  setPlayerName,
+  setPlayers,
+  setChoice,
+  addRound,
+  setRoundState,
+} from "../store/slices/gameSlice";
 
-const useWebSocket = (url: string) => {
-  const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [socketConnected, setSocketConnected] = useState(false);
+import { useWebSocket as reactUseWebSocket } from "react-use-websocket/dist/lib/use-websocket";
+
+const useWebSocket = (url: string, playerName?: string) => {
   const dispatch = useDispatch();
-  
-
-  useEffect(() => {
-    const ws = new WebSocket(url);
-
-    ws.onmessage = (event) => {
+  const { sendMessage } = reactUseWebSocket(url, {
+    queryParams: playerName ? {name: playerName} : undefined,
+    onMessage: (event) => {
       const message = JSON.parse(event.data);
-      setSocket(ws);
-      console.log('banana', message)
-
       switch (message.type) {
+        case "state":
+          dispatch(setRoundState(message.data.state));
+          break
         case "whoami":
-          console.log('whoami', message.data)
           dispatch(setPlayerName(message.data.playerName));
           break;
-        case "connected":
-          console.log('connected', message.data)
+        case "players":
           dispatch(setPlayers(message.data));
           break;
         case "choice":
           dispatch(setChoice(message.data.choice));
           break;
         case "result":
-          dispatch(setRounds(message.data.round));
+          console.log('event type "result"', message.data)
+          dispatch(addRound(message.data));
           break;
         default:
           break;
-        }
-      };
-  
-      ws.onopen = () => {
-        setSocketConnected(true);
-        ws.send(JSON.stringify({ type: 'whoami', time: Date.now() }));
-        console.log("WebSocket connected");
-      };
-  
-      ws.onclose = () => {
-        setSocketConnected(false);
-        console.log("WebSocket disconnected");
-      };
-  
-      return () => {
-        ws.close();
-      };
-    }, [url]);
+      }
+    },
+  });
+  return { sendMessage };
+};
 
-    const sendMessage = useCallback(
-      (message: string) => {
-        console.log('sendMessage', message)
-        if (socket) {
-          socket.send(message);
-        }
-      },
-      [socket]
-    );
-
-    return { socketConnected, sendMessage };
-  };
-  
-  export default useWebSocket;
+export default useWebSocket;

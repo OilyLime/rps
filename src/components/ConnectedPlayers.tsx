@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 interface ConnectedPlayersProps {
+  playerName: string;
   players: string[];
 }
 
@@ -29,13 +30,14 @@ const PlayerListItem = styled.li`
   margin-bottom: 4px;
 `;
 
-const ConnectedPlayers: React.FC<ConnectedPlayersProps> = ({ players }) => {
+
+const ConnectedPlayers: React.FC<ConnectedPlayersProps> = ({ playerName, players }) => {
   return (
     <ConnectedPlayersWrapper>
       <Title>Connected Players</Title>
       <PlayerList>
         {players.map((player, index) => (
-          <PlayerListItem key={index}>{player}</PlayerListItem>
+          player === playerName ? <PlayerListItem key={index}>{player} 👈 (you)</PlayerListItem> : <PlayerListItem key={index}>{player}</PlayerListItem>
         ))}
       </PlayerList>
     </ConnectedPlayersWrapper>

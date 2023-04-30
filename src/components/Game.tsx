@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams } from "react-router";
 import styled from "styled-components";
 import useWebSocket from "../hooks/useWebSocket";
@@ -9,6 +9,7 @@ import {
   selectPlayerName,
   selectRounds,
   setChoice,
+  selectRoundState,
 } from "../store/slices/gameSlice";
 import { Choice } from "../types";
 import ConnectedPlayers from "./ConnectedPlayers";
@@ -56,6 +57,9 @@ const ChoiceImage = styled.img<{ disabled: boolean }>`
 `;
 
 const CopyButton = styled.button`
+  position: fixed;
+  top: 20px;
+  left: 20px;
   margin-bottom: 20px;
   background-color: #3b3e6b;
   color: white;
@@ -87,15 +91,20 @@ const RoundResult = styled.div`
   margin-bottom: 10px;
 `;
 
+const socketURL = (gameId: string) =>
+  (window.location.protocol === "https:" ? "wss://" : "ws://") +
+  window.location.host +
+  `/game/${gameId}`;
+
 const Game: React.FC = () => {
-  const { id: gameId } = useParams<{ id: string }>();
-  const socketURL =
-    (window.location.protocol === "https:" ? "wss://" : "ws://") +
-    window.location.host +
-    `/game/${gameId}`;
+  const { id: gameId } = useParams<{ id: string; name: string }>();
 
-  const { sendMessage } = useWebSocket(socketURL);
+  const { sendMessage } = useWebSocket(socketURL(gameId ?? ""));
+  useEffect(() => {
+    sendMessage(JSON.stringify({ type: "whoami", time: Date.now() }));
+  }, [sendMessage]);
 
+  const roundState = useSelector(selectRoundState);
   const playerName = useSelector(selectPlayerName);
   const connectedPlayers = useSelector(selectPlayers);
   const choice = useSelector(selectChoice);
@@ -119,59 +128,59 @@ const Game: React.FC = () => {
     dispatch(setChoice(selectedChoice));
   };
 
-  console.log('connected players', connectedPlayers)
+  // {"type":"result","time":1682826128075,"data":{"number":0,"time":1682826118508,"choices":[["Plum Fish","rock"],["Green Bird","paper"]],"winner":"Green Bird"}}
 
   return (
     <Block>
-      <ConnectedPlayers players={connectedPlayers} />
+      <CopyButton onClick={copyUrl}>Copy URL</CopyButton>
+      <ConnectedPlayers playerName={playerName} players={connectedPlayers} />
       <GameWrapper>
         <RoundHistory>
           {rounds.map((round, index) => (
             <RoundResult key={index}>
               <img
-                src={`/${round.playerChoice}.png`}
-                alt={round.playerChoice}
+                src={`/${round.choices[0][1]}.png`}
+                alt={round.choices[0][1]}
                 width="40"
               />
               <span>
-                {round.result === "win" && "✅"}
-                {round.result === "lose" && "❌"}
-                {round.result === "draw" && "⭕"}
+                {round.winner === playerName && "✅"}
+                {round.winner !== playerName && "❌"}
+                {round.winner === "" && "⭕"}
               </span>
               <img
-                src={`/${round.opponentChoice}.png`}
-                alt={round.opponentChoice}
+                src={`/${round.choices[1][1]}.png`}
+                alt={round.choices[1][1]}
                 width="40"
               />
             </RoundResult>
           ))}
         </RoundHistory>
         <MainBox>
-          <CopyButton onClick={copyUrl}>Copy URL</CopyButton>
-          <span>
-            Your name: <h2>{playerName}</h2>
-          </span>
+          {roundState === "start" && "Let's Start"}
+          {roundState === "waiting" && "Waiting for Opponent"}
+          {roundState === "complete" && "Round Complete"}
           <ChoicesContainer>
             <ChoiceImage
               src="/rock.png"
               alt="rock"
               id="rock"
               onClick={handleChoice(Choice.Rock)}
-              disabled={choice !== ""}
+              disabled={roundState === "complete"}
             />
             <ChoiceImage
               src="/paper.png"
               alt="paper"
               id="paper"
               onClick={handleChoice(Choice.Paper)}
-              disabled={choice !== ""}
+              disabled={roundState === "complete"}
             />
             <ChoiceImage
               src="/scissors.png"
               alt="scissors"
               id="scissors"
               onClick={handleChoice(Choice.Scissors)}
-              disabled={choice !== ""}
+              disabled={roundState === "complete"}
             />
           </ChoicesContainer>
         </MainBox>

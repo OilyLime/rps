@@ -1,5 +1,5 @@
-import { faker } from '@faker-js/faker'
-import { Choice, Player, Round, IncomingEvent, PlayerChoice } from "./types";
+import { faker } from '@faker-js/faker';
+import { Choice, Player, Round, IncomingEvent, PlayerChoice, State } from './types';
 import { toTitleCase } from './util';
 
 // every 10 seconds
@@ -13,15 +13,15 @@ export class GameState {
 	dolocation: string;
 
 	constructor(state: DurableObjectState) {
-		this.id = state.id.toString()
+		this.id = state.id.toString();
 		this.players = new Map();
 		this.rounds = [];
 		this.storage = state.storage;
 		this.storage.put('currentRound', {
 			number: 0,
 			time: Date.now(),
-			choices: new Map<string, string>()
-		})
+			choices: new Map<string, string>(),
+		});
 		this.dolocation = '';
 
 		this.scheduleNextAlarm(this.storage);
@@ -29,12 +29,17 @@ export class GameState {
 	}
 
 	async fetch(request: Request): Promise<Response> {
+		const url = new URL(request.url);
 		const { headers, cf } = request;
 
 		// pass the request to Durable Object for any WebSocket connection
 		if (headers.get('upgrade') === 'websocket' && cf !== undefined) {
+			if (url.searchParams.has('name') && this.players.has(url.searchParams.get('name'))) {
+				console.log(`${url.searchParams.has('name')} reconnecting`);
+				// TODO actually use name from params when passed
+			}
 			if (this.players.size > 1) {
-				return new Response('Game is FULL!', { status: 403 })
+				return new Response('Game is FULL!', { status: 403 });
 			}
 
 			// To accept the WebSocket request, we create a WebSocketPair (which is like a socketpair,
@@ -57,49 +62,76 @@ export class GameState {
 
 	async resolveRound(): Promise<Round> {
 		const [a, b] = this.players;
-		const round = await this.storage.get('currentRound') as Round
+		const round = (await this.storage.get('currentRound')) as Round;
 		if (round.choices.get(a[0]) === round.choices.get(b[0])) {
 			round.winner = null;
-		} else if ((round.choices.get(a[0]) === Choice.Rock && round.choices.get(b[0]) === Choice.Scissors) ||
+		} else if (
+			(round.choices.get(a[0]) === Choice.Rock && round.choices.get(b[0]) === Choice.Scissors) ||
 			(round.choices.get(a[0]) === Choice.Paper && round.choices.get(b[0]) === Choice.Rock) ||
-			(round.choices.get(a[0]) === Choice.Scissors && round.choices.get(b[0]) === Choice.Paper)) {
-			round.winner = a[0]
+			(round.choices.get(a[0]) === Choice.Scissors && round.choices.get(b[0]) === Choice.Paper)
+		) {
+			round.winner = a[0];
 		} else {
-			round.winner = b[0]
+			round.winner = b[0];
 		}
-		this.players.get(round.winner).wins = this.players.get(round.winner).wins + 1
+		this.players.get(round.winner).wins = this.players.get(round.winner).wins + 1;
 
-		this.rounds.push(round)
+		this.rounds.push(round);
 		await this.storage.put('currentRound', {
 			number: round.number + 1,
 			time: Date.now(),
-			choices: new Map<string, string>()
-		})
-		console.log('resolveRound', round)
-		return round
+			choices: new Map<string, string>(),
+		});
+		return round;
 	}
 
 	async handlePlayerChoice(playerName: string, choice: Choice): Promise<void> {
 		// TODO(maybe): Lock state?
 		// TODO(maybe): Prevent player some setting choice twice?
-		const currentRound = await this.storage.get('currentRound') as Round
-		if (currentRound.choices.has(playerName)) return // player can only enter one choice per round
-		currentRound.choices.set(playerName, choice)
-		await this.storage.put('currentRound', currentRound)
+		const currentRound = (await this.storage.get('currentRound')) as Round;
+		if (currentRound.choices.has(playerName)) return; // player can only enter one choice per round
+		currentRound.choices.set(playerName, choice);
+		await this.storage.put('currentRound', currentRound);
 		if (currentRound.choices.size == 2) {
-			const resolved = await this.resolveRound()
-			this.broadcast(JSON.stringify({
-				type: 'result', time: Date.now(), data: {
-					number: resolved.number,
-					time: resolved.time,
-					choices: Array.from(resolved.choices.entries()),
-					winner: resolved.winner
-				}
-			}))
+			const resolved = await this.resolveRound();
+			this.broadcast(
+				JSON.stringify({
+					type: 'result',
+					time: Date.now(),
+					data: {
+						number: resolved.number,
+						time: resolved.time,
+						choices: Array.from(resolved.choices.entries()),
+						winner: resolved.winner,
+					},
+				})
+			);
+			this.broadcast(
+				JSON.stringify({
+					type: 'state',
+					time: Date.now(),
+					data: {
+						state: State.Complete,
+					},
+				})
+			);
+		} else {
+			this.broadcast(
+				JSON.stringify({
+					type: 'state',
+					time: Date.now(),
+					data: {
+						state: State.Waiting
+					}
+				})
+			)
 		}
 	}
 
-	async handleWebSocketSession(webSocket: WebSocket, metadata: IncomingRequestCfProperties): Promise<void> {
+	async handleWebSocketSession(
+		webSocket: WebSocket,
+		metadata: IncomingRequestCfProperties
+	): Promise<void> {
 		// Accept our end of the WebSocket. This tells the runtime that we'll be terminating the
 		// WebSocket in JavaScript, not sending it elsewhere.
 		webSocket.accept();
@@ -115,13 +147,15 @@ export class GameState {
 		webSocket.addEventListener('message', async msg => {
 			try {
 				const incomingEvent = JSON.parse(msg.data.toString()) as IncomingEvent;
-				console.log(playerName, incomingEvent)
+				console.log(playerName, incomingEvent);
 				switch (incomingEvent.type) {
 					case 'whoami':
-						webSocket.send(JSON.stringify({ type: 'whoami', time: Date.now(), data: { playerName } }))
+						webSocket.send(
+							JSON.stringify({ type: 'whoami', time: Date.now(), data: { playerName } })
+						);
 						break;
 					case 'choice':
-						this.handlePlayerChoice(playerName, incomingEvent.data.choice)
+						this.handlePlayerChoice(playerName, incomingEvent.data.choice);
 						break;
 					default:
 						break;
@@ -129,12 +163,12 @@ export class GameState {
 			} catch (err: unknown) {
 				// Report any exceptions directly back to the client. As with our handleErrors() this
 				// probably isn't what you'd want to do in production, but it's convenient when testing.
-				console.log('msg error!!')
+				console.log('msg error!!');
 				if (err instanceof Error) {
 					webSocket.send(JSON.stringify({ error: err.stack }));
 				} else {
 					// TODO: Better message
-					webSocket.send('something went wrong')
+					webSocket.send('something went wrong');
 				}
 			}
 		});
@@ -145,16 +179,28 @@ export class GameState {
 		};
 		webSocket.addEventListener('close', closeOrErrorHandler);
 		webSocket.addEventListener('error', closeOrErrorHandler);
-		this.broadcast(JSON.stringify(Array.from(this.players.keys())))
-		console.log('websocket established', playerName)
+		this.broadcast(
+			JSON.stringify({ type: 'players', time: Date.now(), data: Array.from(this.players.keys()) })
+		);
+		if (this.rounds.length === 0) {
+			this.broadcast(
+				JSON.stringify({
+					type: 'state',
+					time: Date.now(),
+					data: {
+						state: State.Start
+					}
+				})
+			)
+		}
 	}
 
 	// broadcast() broadcasts a message to all clients.
 	broadcast(message: string) {
 		// Iterate over all the sessions sending them messages.
-		this.players.forEach((player) => {
+		this.players.forEach(player => {
 			try {
-				console.log('broadcasting to player', player.name, 'message', message)
+				console.log('broadcasting to player', player.name, 'message', message);
 				player.websocket.send(message);
 			} catch (err) {
 				console.log(`broadcast error: ${player}`);
@@ -188,5 +234,5 @@ export class GameState {
 export default {
 	fetch() {
 		return new Response('This Worker creates the GameState Durable Object.');
-	}
-}
+	},
+};
