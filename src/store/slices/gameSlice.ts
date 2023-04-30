@@ -2,7 +2,6 @@ import { createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../index"
 
 export interface GameState {
-  roundState: string;
   playerName: string;
   players: string[];
   choice: string;
@@ -10,7 +9,6 @@ export interface GameState {
 }
 
 const initialState: GameState = {
-  roundState: 'waiting',
   playerName: "",
   players: [],
   choice: "",
@@ -21,9 +19,6 @@ const gameSlice = createSlice({
   name: "game",
   initialState,
   reducers: {
-    setRoundState: (state, action) => {
-      state.roundState = action.payload
-    },
     setPlayerName: (state, action) => {
       state.playerName = action.payload;
     },
@@ -50,10 +45,9 @@ const gameSlice = createSlice({
 
 // export default gameState.reducer;
 
-export const { setRoundState, setPlayerName, setPlayers, setChoice, setRounds, addRound } =
+export const { setPlayerName, setPlayers, setChoice, setRounds, addRound } =
   gameSlice.actions;
 
-export const selectRoundState = (state: RootState) => state.game.roundState;
 export const selectPlayers = (state: RootState) => state.game.players;
 export const selectPlayerName = (state: RootState) => state.game.playerName;
 export const selectChoice = (state: RootState) => state.game.choice;

@@ -4,12 +4,6 @@ export enum Choice {
 	Scissors = 'scissors'
 }
 
-export enum State {
-	Start = 'start',
-	Waiting = 'waiting',
-	Complete = 'complete'
-}
-
 export interface Player {
 	websocket: WebSocket;
 	name: string;
@@ -31,8 +25,6 @@ export interface BaseEvent<T extends string, D> {
 
 export type WhoAmI = BaseEvent<'whoami', { playerName: string }>
 
-export type RoundState = BaseEvent<'state', {state: State}>
-
 export type PlayerChoice = BaseEvent<'choice', { choice: Choice }>
 
 export type Healthcheck = BaseEvent<'healthcheck', null>
@@ -43,4 +35,4 @@ export type Result = BaseEvent<'result', { round: { number: number; time: number
 
 export type IncomingEvent = WhoAmI | PlayerChoice;
 
-export type OutgoingEvent = WhoAmI | RoundState | Healthcheck | Result;
+export type OutgoingEvent = WhoAmI | Healthcheck | Result;

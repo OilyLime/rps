@@ -9,7 +9,6 @@ import {
   selectPlayerName,
   selectRounds,
   setChoice,
-  selectRoundState,
 } from "../store/slices/gameSlice";
 import { Choice } from "../types";
 import ConnectedPlayers from "./ConnectedPlayers";
@@ -104,7 +103,6 @@ const Game: React.FC = () => {
     sendMessage(JSON.stringify({ type: "whoami", time: Date.now() }));
   }, [sendMessage]);
 
-  const roundState = useSelector(selectRoundState);
   const playerName = useSelector(selectPlayerName);
   const connectedPlayers = useSelector(selectPlayers);
   const choice = useSelector(selectChoice);
@@ -129,6 +127,13 @@ const Game: React.FC = () => {
   };
 
   // {"type":"result","time":1682826128075,"data":{"number":0,"time":1682826118508,"choices":[["Plum Fish","rock"],["Green Bird","paper"]],"winner":"Green Bird"}}
+  const didIWin = (round: any): boolean | null => {
+    console.log("did I win?", round, playerName);
+    if (round.winner === null) return null;
+    return playerName === round.winner;
+  };
+
+  const canIChoose = connectedPlayers.length === 2 && choice === "";
 
   return (
     <Block>
@@ -136,54 +141,61 @@ const Game: React.FC = () => {
       <ConnectedPlayers playerName={playerName} players={connectedPlayers} />
       <GameWrapper>
         <RoundHistory>
-        <span>Round History</span>
-          {rounds.map((round, index) => (
-            <RoundResult key={index}>
-              <img
-                src={`/${round.choices[0][1]}.png`}
-                alt={round.choices[0][1]}
-                width="40"
-              />
-              <span>
-                {round.winner === playerName && "✅"}
-                {round.winner !== playerName && "❌"}
-                {round.winner === "" && "⭕"}
-              </span>
-              <img
-                src={`/${round.choices[1][1]}.png`}
-                alt={round.choices[1][1]}
-                width="40"
-              />
-            </RoundResult>
-          ))}
+          <span>Round History</span>
+          {rounds.length ? (
+            rounds.map((round, index) => (
+              <RoundResult key={index}>
+                <img
+                  src={`/${round.choices[0][1]}.png`}
+                  alt={round.choices[0][1]}
+                  width="40"
+                />
+                <span>
+                  {didIWin(round) === null && "⭕"}
+                  {didIWin(round) === true && "✅"}
+                  {didIWin(round) === false && "❌"}
+                </span>
+                <img
+                  src={`/${round.choices[1][1]}.png`}
+                  alt={round.choices[1][1]}
+                  width="40"
+                />
+              </RoundResult>
+            ))
+          ) : (
+            <RoundResult key={0}>No Rounds Yet</RoundResult>
+          )}
         </RoundHistory>
         <MainBox>
-          <span>
-          {roundState === "start" && "Let's Start"}
-          {roundState === "waiting" && "Waiting for Opponent"}
-          {roundState === "complete" && "Round Complete"}
-          </span>
+          {connectedPlayers && connectedPlayers.length === 2 ? (
+            <span>
+              {choice === "" && "Choose One"}
+              {choice !== "" && "Waiting for Opponent"}
+            </span>
+          ) : (
+            <span>Waiting for Opponent</span>
+          )}
           <ChoicesContainer>
             <ChoiceImage
               src="/rock.png"
               alt="rock"
               id="rock"
               onClick={handleChoice(Choice.Rock)}
-              disabled={roundState === "complete"}
+              disabled={!canIChoose}
             />
             <ChoiceImage
               src="/paper.png"
               alt="paper"
               id="paper"
               onClick={handleChoice(Choice.Paper)}
-              disabled={roundState === "complete"}
+              disabled={!canIChoose}
             />
             <ChoiceImage
               src="/scissors.png"
               alt="scissors"
               id="scissors"
               onClick={handleChoice(Choice.Scissors)}
-              disabled={roundState === "complete"}
+              disabled={!canIChoose}
             />
           </ChoicesContainer>
         </MainBox>

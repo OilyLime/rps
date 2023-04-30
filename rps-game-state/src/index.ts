@@ -74,7 +74,9 @@ export class GameState {
 		} else {
 			round.winner = b[0];
 		}
-		this.players.get(round.winner).wins = this.players.get(round.winner).wins + 1;
+
+		if (round.winner !== null)
+			this.players.get(round.winner).wins = this.players.get(round.winner).wins + 1;
 
 		this.rounds.push(round);
 		await this.storage.put('currentRound', {
@@ -106,25 +108,6 @@ export class GameState {
 					},
 				})
 			);
-			this.broadcast(
-				JSON.stringify({
-					type: 'state',
-					time: Date.now(),
-					data: {
-						state: State.Complete,
-					},
-				})
-			);
-		} else {
-			this.broadcast(
-				JSON.stringify({
-					type: 'state',
-					time: Date.now(),
-					data: {
-						state: State.Waiting
-					}
-				})
-			)
 		}
 	}
 
@@ -176,23 +159,15 @@ export class GameState {
 		let closeOrErrorHandler = () => {
 			console.log('player websocket closed', playerName);
 			this.players.delete(playerName);
+			this.broadcast(
+				JSON.stringify({ type: 'players', time: Date.now(), data: Array.from(this.players.keys()) })
+			);
 		};
 		webSocket.addEventListener('close', closeOrErrorHandler);
 		webSocket.addEventListener('error', closeOrErrorHandler);
 		this.broadcast(
 			JSON.stringify({ type: 'players', time: Date.now(), data: Array.from(this.players.keys()) })
 		);
-		if (this.rounds.length === 0) {
-			this.broadcast(
-				JSON.stringify({
-					type: 'state',
-					time: Date.now(),
-					data: {
-						state: State.Start
-					}
-				})
-			)
-		}
 	}
 
 	// broadcast() broadcasts a message to all clients.

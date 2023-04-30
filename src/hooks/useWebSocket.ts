@@ -4,7 +4,6 @@ import {
   setPlayers,
   setChoice,
   addRound,
-  setRoundState,
 } from "../store/slices/gameSlice";
 
 import { useWebSocket as reactUseWebSocket } from "react-use-websocket/dist/lib/use-websocket";
@@ -16,9 +15,6 @@ const useWebSocket = (url: string, playerName?: string) => {
     onMessage: (event) => {
       const message = JSON.parse(event.data);
       switch (message.type) {
-        case "state":
-          dispatch(setRoundState(message.data.state));
-          break
         case "whoami":
           dispatch(setPlayerName(message.data.playerName));
           break;
@@ -29,8 +25,8 @@ const useWebSocket = (url: string, playerName?: string) => {
           dispatch(setChoice(message.data.choice));
           break;
         case "result":
-          console.log('event type "result"', message.data)
           dispatch(addRound(message.data));
+          dispatch(setChoice('')) // TODO: maybe there's a better way?
           break;
         default:
           break;
