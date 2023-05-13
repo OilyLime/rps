@@ -145,7 +145,6 @@ const Game: React.FC = () => {
     dispatch(setChoice(selectedChoice));
   };
 
-  // {"type":"result","time":1682826128075,"data":{"number":0,"time":1682826118508,"choices":[["Plum Fish","rock"],["Green Bird","paper"]],"winner":"Green Bird"}}
   const didIWin = (round: any): boolean | null => {
     console.log("did I win?", round, playerName);
     if (round.winner === null) return null;
