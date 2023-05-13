@@ -1,0 +1,19 @@
+name: Deploy
+
+on:
+  push:
+    branches: ['main']
+    paths: ['rps-game-state/**']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - uses: actions/checkout@v2
+      - name: Publish
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          preCommands: npm i
+          workingDirectory: 'rps-game-state'
