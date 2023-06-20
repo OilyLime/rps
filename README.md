@@ -1,5 +1,7 @@
 # rps
 
+https://rps.oilylime.com
+
 I built a thing. Rock, Paper, Scissors in real time, powered by Cloudflare Pages (Jamstack Frontend) and Cloudflare Durable Objects (backend, game state management). Real time communication between the client and server is achieved with Websockets!
 
 ## Local Development
