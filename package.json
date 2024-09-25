@@ -25,7 +25,7 @@
   "dependencies": {
     "@faker-js/faker": "^7.6.0",
     "@reduxjs/toolkit": "^1.9.5",
-    "miniflare": "^2.14.3",
+    "miniflare": "^3.20240925.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^8.0.5",
